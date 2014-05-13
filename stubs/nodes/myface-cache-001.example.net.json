@@ -1,0 +1,10 @@
+{
+  "name": "myface-cache-001.example.net",
+  "chef_environment": "dev",
+  "run_list": [
+    "role[myface-cache]"
+  ],
+  "normal": {
+    "fqdn": "myface-cache-001.example.net"
+  }
+}

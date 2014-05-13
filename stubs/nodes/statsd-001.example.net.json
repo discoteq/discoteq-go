@@ -1,0 +1,17 @@
+{
+  "name": "statsd-001.example.net",
+  "chef_environment": "infra",
+  "run_list": [
+    "role[statsd]"
+  ],
+  "normal": {
+    "fqdn": "statsd-001.example.net",
+    "cloud": {
+      "private_ipv4": "10.0.0.216"
+    },
+    "statsd": {
+      "port": 8126
+    }
+  }
+}
+

@@ -1,55 +1,31 @@
+// Generate a Service Map from a chef server
+//
+//discoteq-chef generates a service map from chef data
+
 package main
 
 import (
-	"os"
-	"fmt"
-	"flag"
 	"log"
-//	"github.com/marpaia/chef-golang"
-	"./chef"
-//	"chef"
+	"os"
+
+	"github.com/josephholsten/discoteq/chef"
+	"github.com/josephholsten/discoteq/common"
+	"github.com/josephholsten/discoteq/chef/config"
 )
 
-var configPath string
-
-func init() {
-	const (
-		defaultConfigPath = "/etc/discoteq-chef.json"
-		usage         = "config file"
-	)
-	flag.StringVar(&configPath, "config", defaultConfigPath, usage)
-	flag.StringVar(&configPath, "c", defaultConfigPath, usage+" (shorthand)")
-}
-
-
 func main() {
-	flag.Parse()
+	log.SetFlags(0) // disable time in output
+	config.Parse()
 
-	// load conf
-	config, err := chef.UnmarshalFile(configPath)
-	if err != nil {
-		log.Fatalf("could not parse config file %s: 5s", configPath, err)
-	}
-
-	// discoveredServices = new Services()
+	discoveredServices := make(discoteq.ServiceMap)
 	for name, svc := range config.Services {
-		fmt.Printf("%s: %s\n", name, svc)
-		// request service data
-		// discoveredService = new Service(svc.Name())
-		// nodes, err := chef.Search("nodes", svc.Query())
-		// for node, i := range nodes {
-			// attrs := svc.ExtractAttrs(node)
-			// discoveredService.Append(attrs)
-		// }
-		// discoveredServices.Append(discoveredService)
+		service := chef.ServiceFromRaw(name, svc)
+		discoveredServices[service.Name] = service.HostRecordList()
 	}
-	
-	// render services data
-	json, err := config.Marshal()
-	if err != nil {
-		log.Fatal("could not generate json")
-	}
-	output :=  fmt.Sprintf("%s: %s\n", configPath, json)
-	os.Stdout.Write( []byte(output))
-}
 
+	json, err := discoveredServices.Marshal()
+	if err != nil {
+		log.Fatal("Could not generate JSON from Service Map")
+	}
+	os.Stdout.Write(json)
+}

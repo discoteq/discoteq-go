@@ -103,12 +103,22 @@ explicit output file
 
 change event triggers
 
+C. F.
+-----
 
+This is (apparently) not an original idea. You should seriously look at
+[confd](https://github.com/kelseyhightower/confd). 
 
 
 Contributing
 -----
 
-go get
+Install all dependencies
 
-https://github.com/marpaia/chef-golang.git
+    ./dev-bootstrap.sh
+
+Start support services
+
+    forego start
+
+

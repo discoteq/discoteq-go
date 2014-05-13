@@ -1,0 +1,10 @@
+{
+  "name": "myface-001.example.net",
+  "chef_environment": "dev",
+  "run_list": [
+    "role[myface]"
+  ],
+  "normal": {
+    "fqdn": "myface-001.example.net"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "myface-db-002.example.net",
+  "chef_environment": "dev",
+  "run_list": [
+    "role[myface-db]"
+  ],
+  "normal": {
+    "fqdn": "myface-db-002.example.net",
+    "tag": ["slave"]
+  }
+}
