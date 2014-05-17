@@ -1,0 +1,14 @@
+Source: discoteq
+Section: devel
+Priority: optional
+Maintainer: Joseph Anthony Pasquale Holsten <joseph@josephholsten.com>
+Standards-Version: 3.9.5
+Build-Depends: debhelper (>= 8.0.0),
+               dh-golang,
+               golang-go
+
+Package: discoteq
+Architecture: all
+Description: Service discovery integration tools
+  discoteq attaches your application to all those fancy service
+  coordination systems that are popping up.
