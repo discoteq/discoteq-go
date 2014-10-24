@@ -1,16 +1,9 @@
 #!/bin/sh
-# support tools
-go get -u github.com/tools/godep
-go get -u github.com/ddollar/forego
-go get -u code.google.com/p/mango-doc
-# support services
-go get -u github.com/ctdk/goiardi
-# dependant libs
-go get -u github.com/marpaia/chef-golang
 
-nohup goiardi &
-pushd stubs
-knife upload .
+# fixes build/test problems
+if [ ! -d $GOPATH/src/github.com/discoteq/discoteq.go ]; then
+  mkdir -p $GOPATH/src/github.com/discoteq
+  ln -s ./ $GOPATH/src/github.com/discoteq/discoteq.go
+fi
 
-
-
+make dev-bootstrap

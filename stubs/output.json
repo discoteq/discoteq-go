@@ -1,0 +1,36 @@
+{
+  "myface": [
+    {
+      "hostname": "myface-001.example.net"
+    }
+  ],
+  "myface-cache": [
+    {
+      "hostname": "myface-cache-001.example.net"
+    }
+  ],
+  "myface-db-master": [
+    {
+      "hostname": "myface-db-001.example.net"
+    }
+  ],
+  "myface-db-slave": [
+    {
+      "hostname": "myface-db-002.example.net"
+    },
+    {
+      "hostname": "myface-db-001.example.net"
+    }
+  ],
+  "myface-fascade": [
+    {
+      "hostname": "myface-lb.example.net"
+    }
+  ],
+  "statsd": [
+    {
+      "hostname": "10.0.0.216",
+      "port": 8126
+    }
+  ]
+}

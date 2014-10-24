@@ -5,10 +5,10 @@ import (
 	"log"
 	"strings"
 
-	chefClient "github.com/marpaia/chef-golang"
+	chefClient "github.com/go-chef/chef"
 
-	"github.com/josephholsten/discoteq/chef/config"
-	"github.com/josephholsten/discoteq/common"
+	"github.com/discoteq/discoteq-go/chef/config"
+	"github.com/discoteq/discoteq-go/common"
 )
 
 var (
@@ -71,11 +71,11 @@ func ServiceFromRaw(name string, raw map[string]interface{}) *Service {
 				if ok {
 					service.Attrs[k] = v
 				} else {
-					log.Printf("Could not cast attribute into string: %v", attrs[k])
+					log.Printf("[WARN] Could not cast attribute into string: %v", attrs[k])
 				}
 			}
 		} else {
-			log.Printf("Could not cast attributes into map[string]interface{}: %v", raw["attrs"])
+			log.Printf("[WARN] Could not cast attributes into map[string]interface{}: %v", raw["attrs"])
 		}
 	}
 
@@ -83,27 +83,20 @@ func ServiceFromRaw(name string, raw map[string]interface{}) *Service {
 }
 
 func (s *Service) HostRecordList() discoteq.ServiceHostRecordList {
-	c := s.chefClient()
+  log.Print("[DEBUG] Entering HostRecordList()")
+	c := config.ChefClient()
 	// request service data
 	query := s.FullQuery()
-	searchResults, err := c.Search("node", query)
+  log.Print("[DEBUG] Searching with query: ", query)
+	searchResults, err := c.Search.Exec("node", query)
 	if err != nil {
 		log.Fatalf("Could not search for nodes with query:\"%s\", error: %s", query, err)
 	}
-	return s.hostRecordListFromResults(searchResults)
+  log.Print("[DEBUG] Searching results: ", searchResults)
+	return s.hostRecordListFromResults(&searchResults)
 }
 
-func (s *Service) chefClient() *chefClient.Chef {
-	// TODO: extract into singleton
-	c, err := chefClient.Connect()
-	if err != nil {
-		log.Fatalf("Could not connect to Chef:", err)
-	}
-	c.SSLNoVerify = true
-	return c
-}
-
-func (s *Service) hostRecordListFromResults(searchResults *chefClient.SearchResults) discoteq.ServiceHostRecordList {
+func (s *Service) hostRecordListFromResults(searchResults *chefClient.SearchResult) discoteq.ServiceHostRecordList {
 	discoveredService := make(discoteq.ServiceHostRecordList, 0)
 
 	for _, node := range searchResults.Rows {
