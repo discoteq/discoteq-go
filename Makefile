@@ -1,3 +1,4 @@
+all: tags lint doc build test
 tags:
 	ctags -R .
 doc: man
@@ -36,4 +37,3 @@ clean:
 	rm -f nohup.out
 	rm -f discoteq.1
 
-all: tags lint doc build test

@@ -8,13 +8,30 @@ import (
 	"log"
 	"os"
 
-	"github.com/josephholsten/discoteq/chef"
-	"github.com/josephholsten/discoteq/common"
-	"github.com/josephholsten/discoteq/chef/config"
+	"github.com/hashicorp/logutils"
+
+	"github.com/discoteq/discoteq-go/chef"
+	"github.com/discoteq/discoteq-go/common"
+	"github.com/discoteq/discoteq-go/chef/config"
 )
 
 func main() {
 	log.SetFlags(0) // disable time in output
+	filter := &logutils.LevelFilter{
+		Levels: []logutils.LogLevel{
+			"DEBUG",
+			"INFO",
+			"NOTICE",
+			"WARN",
+			"ERROR",
+			"CRITICAL",
+			"ALERT",
+			"PANIC",
+		},
+		MinLevel: "WARN",
+		Writer: os.Stderr,
+	}
+	log.SetOutput(filter)
 	config.Parse()
 
 	discoveredServices := make(discoteq.ServiceMap)
