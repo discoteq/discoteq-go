@@ -41,6 +41,43 @@ Other tools exist for these problems, notably `cron(8)`, `tilt(1)`,
 `-u` *chef-client-name*
 :   Chef client username, default: `node.fqdn`
 
+
+## Supported queries types
+
+Each service query needs to return a list of service host records, each of which must have a `hostname` attribute.
+
+```js
+[
+  {
+    "hostname": "myface-002.example.net",
+    "port": 8080
+  },
+  {
+    "hostname": "myface-003.example.net",
+    "port": 8081
+  }
+]
+```
+As such, queries need a way to select a set of hosts and a way to extract key-value pairs for each.
+
+At the moment, the only type of query supported are Chef searches of the `node` index.
+
+`query`
+:   Chef search query.
+
+`role`
+:   Shorthand for a `query` of `role:{role}`.
+
+`tag`
+:   Shorthand for a `query` of `tag:{tag}`.
+
+`include_chef_environment`
+:   Whether to append `"AND chef_environment:{chef-environment}"` to the query. Defaults to true.
+    The `chef-environment` comes from the `-E` parameter, or defaults to `"_default"`
+
+`attrs`
+:   Map of exported key onto an attribute key. Nested attributes may be accessed by combining the keys with a `.`, eg: setting the `hostname` attribute from `node['cloud']['private_ipv4']` can use the notation `"attrs": { "hostname": "cloud.private_ipv4" }`. `attrs` defaults to `{"hostname": "fqdn"}` and will merge the default with any provided attrs.
+ 
 # EXAMPLES
 
 ## The simplest thing that could possibly work
