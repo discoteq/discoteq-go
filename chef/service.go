@@ -3,6 +3,7 @@ package chef
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 
 	chefClient "github.com/go-chef/chef"
@@ -15,11 +16,15 @@ var (
 	defaultAttrsFqdn = map[string]string{"hostname": "fqdn"}
 )
 
+// chef.Service: query object generated from config
 type Service struct {
 	Name  string
 	Query string
 	Attrs map[string]string
 }
+
+// Node attribute map
+type ChefNodeMap map[string]interface{}
 
 func (s *Service) FullQuery() string {
 	return s.Query
@@ -83,16 +88,16 @@ func ServiceFromRaw(name string, raw map[string]interface{}) *Service {
 }
 
 func (s *Service) HostRecordList() discoteq.ServiceHostRecordList {
-  log.Print("[DEBUG] Entering HostRecordList()")
+	log.Print("[DEBUG] Entering HostRecordList()")
 	c := config.ChefClient()
 	// request service data
 	query := s.FullQuery()
-  log.Print("[DEBUG] Searching with query: ", query)
+	log.Print("[DEBUG] Searching with query: ", query)
 	searchResults, err := c.Search.Exec("node", query)
 	if err != nil {
 		log.Fatalf("Could not search for nodes with query:\"%s\", error: %s", query, err)
 	}
-  log.Print("[DEBUG] Searching results: ", searchResults)
+	log.Print("[DEBUG] Searching results: ", searchResults)
 	return s.hostRecordListFromResults(&searchResults)
 }
 
@@ -101,16 +106,18 @@ func (s *Service) hostRecordListFromResults(searchResults *chefClient.SearchResu
 
 	for _, node := range searchResults.Rows {
 
-		attrs := make(map[string]interface{})
-		nodeMap, _ := node.(map[string]interface{})
+		attrs := make(discoteq.ServiceHostRecord)
+		nodeMap, _ := node.(ChefNodeMap)
 		mergedNodeMap := mergeNodeAttrs(nodeMap)
 		requestedAttrs := s.Attrs
 		for k, v := range requestedAttrs {
-			attrs[k] = getAttr(mergedNodeMap, v)
+			attrs[k] = getAttr(mergedNodeMap, v).(string)
 		}
 
 		discoveredService = append(discoveredService, attrs)
 	}
+
+	sort.Sort(discoveredService)
 
 	return discoveredService
 }
@@ -118,7 +125,7 @@ func (s *Service) hostRecordListFromResults(searchResults *chefClient.SearchResu
 // query a node attribute map using a query string with simplified
 // syntax, so that foo.bar.baz is equivalent to node["foo"]["bar"]["baz"],
 // and returning nil in the event of invalid access
-func getAttr(node map[string]interface{}, query string) interface{} {
+func getAttr(node ChefNodeMap, query string) interface{} {
 	segments := strings.Split(query, ".")
 	current := node
 	var result interface{}
@@ -126,18 +133,18 @@ func getAttr(node map[string]interface{}, query string) interface{} {
 		result = current[seg]
 		// descent into empty map doesn't matter, it
 		// correctly returns null regardless
-		current, _ = current[seg].(map[string]interface{})
+		current, _ = current[seg].(ChefNodeMap)
 	}
 	return result
 }
 
 // take a node with default, normal and automatic attributes
 // and return a single merged map of the highest precedence values
-func mergeNodeAttrs(node map[string]interface{}) map[string]interface{} {
+func mergeNodeAttrs(node ChefNodeMap) ChefNodeMap {
 	// default is a keyword, dfault will have to do
-	dfault, _ := node["default"].(map[string]interface{})
-	normal, _ := node["normal"].(map[string]interface{})
-	automatic, _ := node["automatic"].(map[string]interface{})
+	dfault, _ := node["default"].(ChefNodeMap)
+	normal, _ := node["normal"].(ChefNodeMap)
+	automatic, _ := node["automatic"].(ChefNodeMap)
 	// merge together attributes with automatic at highest precedence,
 	// followed by normal, followed by default
 	result := mergeAttrMap(mergeAttrMap(dfault, normal), automatic)
