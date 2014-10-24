@@ -4,7 +4,7 @@ discoteq -- discover services from service registries
 
 ## Synopsis
 
-`discoteq` [`-c` *config-file*] [`-k` *chef-key*] [`-s` *chef-server*]\
+`discoteq` [`-c` *config-file*] [`-k` *chef-key*] [`-s` *chef-server*]
  [`-E` *chef-environment*] [`-u` *chef-client-name*] [*file*]
 
 ## Description
