@@ -294,44 +294,6 @@ With this in your [`crontab(5)`][]:
                  > /var/lib/discoteq/services.json
 
 
-## Contributing
-
-Got an idea? Something smell wrong? Cause you pain? Or lost seconds of
-your life you'll never get back?
-
-All contributions are welcome: ideas, patches, documentation, bug
-reports, complaints, and even something you drew up on a napkin.
-
-Programming is not a required skill. Whatever you've seen about open
-source and maintainers or community members saying "send patches or
-die" - you will not see that here.
-
-It is more important to me that you are able to contribute.
-
-I promise to help guide this project with these principles:
-
--   Community: If a newbie has a bad time, it's a bug.
--   Software: Make it work, then make it right, then make it fast.
--   Technology: If it doesn't do a thing today, we can make it do it
-    tomorrow.
-
-(Some of the above was repurposed with \<3 from logstash)
-
-For those of you who do want to contribute with code, we've tried to
-make it easy to get started. You can install all dependencies and tools
-with:
-
-    ./dev-bootstrap.sh
-
-Then you can start support services with:
-
-    forego start
-
-Plenty of example data already exists in `stubs/`, though it probably
-deserves more explanation.
-
-Good luck!
-
   [working go development environment]: http://blog.golang.org/organizing-go-code
   [`tilt(1)`]: https://github.com/rtomayko/tilt/blob/master/man/tilt.1.ronn
   [`confd`]: http://www.confd.io/
