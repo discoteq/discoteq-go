@@ -28,7 +28,7 @@ lint:
 	golint
 	go vet
 
-discoteq: discoteq.go chef/config/config.go chef/service.go
+discoteq: discoteq.go config/config.go chef/service.go
 	go build -o discoteq
 
 build: discoteq
@@ -41,4 +41,3 @@ clean:
 	rm -f tags
 	rm -f nohup.out
 	rm -f discoteq.1
-

@@ -10,9 +10,9 @@ import (
 
 	"github.com/hashicorp/logutils"
 
-	"github.com/discoteq/discoteq-go/chef"
-	"github.com/discoteq/discoteq-go/common"
-	"github.com/discoteq/discoteq-go/chef/config"
+	"github.com/discoteq/discoteq-go/config"
+	"github.com/discoteq/discoteq-go/service"
+	"github.com/discoteq/discoteq-go/service/parser"
 )
 
 func main() {
@@ -29,15 +29,20 @@ func main() {
 			"PANIC",
 		},
 		MinLevel: "WARN",
-		Writer: os.Stderr,
+		Writer:   os.Stderr,
 	}
 	log.SetOutput(filter)
 	config.Parse()
 
 	discoveredServices := make(discoteq.ServiceMap)
 	for name, svc := range config.Services {
-		service := chef.ServiceFromRaw(name, svc)
-		discoveredServices[service.Name] = service.HostRecordList()
+		service, err := parser.Parse(name, svc)
+		if err != nil {
+			log.Fatalf("Could not handle service: %s. Error: %v", name, err)
+		}
+
+		hostRecordList := service.HostRecordList()
+		discoveredServices[name] = hostRecordList
 	}
 
 	json, err := discoveredServices.Marshal()

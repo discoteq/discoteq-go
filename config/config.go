@@ -13,22 +13,22 @@ import (
 
 var (
 	ConfigPath             = flag.String("c", "/etc/discoteq.json", "config file path")
-	defaultServerUrl       = "http://localhost:4545"
-	ServerUrl              = flag.String("s", "", "chef server URL, default: http://localhost:4545")
-	ClientUsername         = flag.String("u", "", "API client username, default: node.fqdn")
-	defaultKeyPath         = "/etc/chef/client.pem"
-	ClientKeyPath          = flag.String("k", "", "API client key file path, default: /etc/chef/client.pem")
+	defaultChefServerUrl   = "http://localhost:4545"
+	ChefServerUrl          = flag.String("s", "", "chef server URL, default: http://localhost:4545")
+	ChefClientUsername     = flag.String("u", "", "API client username, default: node.fqdn")
+	defaultChefKeyPath     = "/etc/chef/client.pem"
+	ChefClientKeyPath      = flag.String("k", "", "API client key file path, default: /etc/chef/client.pem")
 	defaultChefEnvironment = "_default"
 	ChefEnvironment        = flag.String("E", "", "environment query scope, default: node.chef_environment || _default")
 	Services               map[string]map[string]interface{}
 )
 
 type Config struct {
-	ServerUrl       string                            `json:server-url`
-	ClientUsername  string                            `json:user`
-	ClientKeyPath   string                            `json:key`
-	ChefEnvironment string                            `json:environment`
-	Services        map[string]map[string]interface{} `json:"services"`
+	ChefServerUrl      string                            `json:chef-server-url`
+	ChefClientUsername string                            `json:chef-user`
+	ChefClientKeyPath  string                            `json:chef-key`
+	ChefEnvironment    string                            `json:chef-environment`
+	Services           map[string]map[string]interface{} `json:services`
 	//	Services map[string]Service  `json:"services"`
 }
 
@@ -56,10 +56,10 @@ func (config *Config) Marshal() ([]byte, error) {
 }
 
 func Parse() {
-  log.Print("[DEBUG] Parsing flags")
+	log.Print("[DEBUG] Parsing flags")
 	flag.Parse()
 
-  log.Print("[DEBUG] Loading config file")
+	log.Print("[DEBUG] Loading config file")
 	fileConfig, err := UnmarshalFile(*ConfigPath)
 	if err != nil {
 		// fileConfig is /required/ for Services config, cannot function w/o it
@@ -67,20 +67,20 @@ func Parse() {
 	}
 
 	// Set global values, prefering flag value, then file, then default.
-   log.Print("[DEBUG] Selecting ServerUrl")
-	if *ServerUrl == "" {
-		if fileConfig.ServerUrl != "" {
-			ServerUrl = &fileConfig.ServerUrl
+	log.Print("[DEBUG] Selecting ChefServerUrl")
+	if *ChefServerUrl == "" {
+		if fileConfig.ChefServerUrl != "" {
+			ChefServerUrl = &fileConfig.ChefServerUrl
 		} else {
-			ServerUrl = &defaultServerUrl
+			ChefServerUrl = &defaultChefServerUrl
 		}
 	}
-  log.Print("[DEBUG] ServerUrl: ", *ServerUrl)
+	log.Print("[DEBUG] ChefServerUrl: ", *ChefServerUrl)
 
-  log.Print("[DEBUG] Selecting ClientUsername")
-	if *ClientUsername == "" {
-		if fileConfig.ClientUsername != "" {
-			ClientUsername = &fileConfig.ClientUsername
+	log.Print("[DEBUG] Selecting ChefClientUsername")
+	if *ChefClientUsername == "" {
+		if fileConfig.ChefClientUsername != "" {
+			ChefClientUsername = &fileConfig.ChefClientUsername
 		} else {
 			// Default client-username is FQDN if not specified in flags or file
 			hostname, err := os.Hostname()
@@ -88,29 +88,29 @@ func Parse() {
 				// ClientUsername is /required/ to access chef, cannot function w/o it
 				log.Fatal("Could not find hostname.")
 			}
-			ClientUsername = &hostname
+			ChefClientUsername = &hostname
 		}
 	}
-  log.Print("[DEBUG] ClientUsername: ", ClientUsername)
+	log.Print("[DEBUG] ChefClientUsername: ", ChefClientUsername)
 
-  log.Print("[DEBUG] Selecting ClientKeyPath")
-	if *ClientKeyPath == "" {
-		if fileConfig.ClientKeyPath != "" {
-			ClientKeyPath = &fileConfig.ClientKeyPath
+	log.Print("[DEBUG] Selecting ChefClientKeyPath")
+	if *ChefClientKeyPath == "" {
+		if fileConfig.ChefClientKeyPath != "" {
+			ChefClientKeyPath = &fileConfig.ChefClientKeyPath
 		} else {
-			ClientKeyPath = &defaultKeyPath
+			ChefClientKeyPath = &defaultChefKeyPath
 		}
 	}
-  log.Print("[DEBUG] ClientKeyPath: ", ClientKeyPath)
+	log.Print("[DEBUG] ChefClientKeyPath: ", ChefClientKeyPath)
 
-  log.Print("[DEBUG] Selecting ChefEnvironment")
+	log.Print("[DEBUG] Selecting ChefEnvironment")
 	if *ChefEnvironment == "" {
 		if fileConfig.ChefEnvironment != "" {
 			ChefEnvironment = &fileConfig.ChefEnvironment
 		} else {
-      c := ChefClient()
+			c := ChefClient()
 
-			node, _ := c.Nodes.Get(*ClientUsername)
+			node, _ := c.Nodes.Get(*ChefClientUsername)
 			// it doesn't matter if response is !ok or err, node.Environment == "" in each case
 			if node.Environment != "" {
 				ChefEnvironment = &node.Environment
@@ -120,26 +120,26 @@ func Parse() {
 			}
 		}
 	}
-  log.Print("[DEBUG] ChefEnvironment: ", ChefEnvironment)
+	log.Print("[DEBUG] ChefEnvironment: ", ChefEnvironment)
 
 	// services must be set from file
 	Services = fileConfig.Services
 }
 
 func ChefClient() *chefClient.Client {
-  // read a client key
-  log.Print("[DEBUG] Reading key:", *ClientKeyPath)
-	key, err := ioutil.ReadFile(*ClientKeyPath)
+	// read a client key
+	log.Print("[DEBUG] Reading key:", *ChefClientKeyPath)
+	key, err := ioutil.ReadFile(*ChefClientKeyPath)
 	if err != nil {
-    log.Fatal("Couldn't read key:", *ClientKeyPath, err)
+		log.Fatal("Couldn't read key:", *ChefClientKeyPath, err)
 	}
 
-  config := chefClient.Config{
-    Name: *ClientUsername,
-    Key: string(key),
-    BaseURL: *ServerUrl,
-    SkipSSL: true,
-  }
+	config := chefClient.Config{
+		Name:    *ChefClientUsername,
+		Key:     string(key),
+		BaseURL: *ChefServerUrl,
+		SkipSSL: true,
+	}
 
 	c, err := chefClient.NewClient(&config)
 	if err != nil {

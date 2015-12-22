@@ -8,8 +8,8 @@ import (
 
 	chefClient "github.com/go-chef/chef"
 
-	"github.com/discoteq/discoteq-go/chef/config"
-	"github.com/discoteq/discoteq-go/common"
+	"github.com/discoteq/discoteq-go/config"
+	"github.com/discoteq/discoteq-go/service"
 )
 
 var (
@@ -18,9 +18,13 @@ var (
 
 // chef.Service: query object generated from config
 type Service struct {
-	Name  string
+	name  string
 	Query string
 	Attrs map[string]string
+}
+
+func (s *Service) Name() string {
+	return s.name
 }
 
 // Node attribute map
@@ -31,7 +35,7 @@ func (s *Service) FullQuery() string {
 }
 func ServiceFromRaw(name string, raw map[string]interface{}) *Service {
 	service := new(Service)
-	service.Name = name
+	service.name = name
 
 	// build query
 	role, _ := raw["role"].(string)
@@ -122,12 +126,12 @@ func (s *Service) hostRecordListFromResults(searchResults *chefClient.SearchResu
 			log.Printf("[DEBUG] requested attr k:%q v:%q", k, v)
 			switch val := getAttr(mergedNodeMap, v).(type) {
 			default:
-                log.Printf("[WARN] Could not identify type of attr: %q", val)
+				log.Printf("[WARN] Could not identify type of attr: %q", val)
 				attrs[k] = ""
 			case string:
 				attrs[k] = val
 			case float64:
-				attrs[k] = fmt.Sprintf("%v",val)
+				attrs[k] = fmt.Sprintf("%v", val)
 			}
 		}
 
