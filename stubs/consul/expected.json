@@ -1,0 +1,12 @@
+{
+  "myface": [
+    {
+      "node": "myface.local",
+      "hostname": "192.168.1.216",
+      "id": "myface",
+      "name": "myface",
+      "port": "216",
+      "tags": "rails"
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/discoteq/discoteq-go/service"
 	"github.com/discoteq/discoteq-go/chef"
+	"github.com/discoteq/discoteq-go/consul"
 )
 
 
@@ -20,7 +21,9 @@ func Parse(name string, raw map[string]interface{}) (discoteq.Service, error) {
 
 	if engine == "chef" {
 		return chef.ServiceFromRaw(name, raw), nil
+	} else if engine == "consul" {
+		return consul.ServiceFromRaw(name, raw), nil
 	} else {
-		return nil, fmt.Errorf("Unknown engine:%s for service:%s. Supported engines: chef.", name, engine)
+		return nil, fmt.Errorf("Unknown engine:%s for service:%s. Supported engines: chef, consul.", name, engine)
 	}
 }
