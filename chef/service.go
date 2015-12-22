@@ -76,11 +76,11 @@ func ServiceFromRaw(name string, raw map[string]interface{}) *Service {
 				if ok {
 					service.Attrs[k] = v
 				} else {
-					log.Printf("[WARN] Could not cast attribute into string: %v", attrs[k])
+					log.Printf("[WARN] Could not cast attribute into string: %q", attrs[k])
 				}
 			}
 		} else {
-			log.Printf("[WARN] Could not cast attributes into map[string]interface{}: %v", raw["attrs"])
+			log.Printf("[WARN] Could not cast attributes into map[string]interface{}: %q", raw["attrs"])
 		}
 	}
 
@@ -102,16 +102,33 @@ func (s *Service) HostRecordList() discoteq.ServiceHostRecordList {
 }
 
 func (s *Service) hostRecordListFromResults(searchResults *chefClient.SearchResult) discoteq.ServiceHostRecordList {
+	log.Print("[DEBUG] Entering hostRecordListFromResults")
 	discoveredService := make(discoteq.ServiceHostRecordList, 0)
 
 	for _, node := range searchResults.Rows {
+		log.Printf("[DEBUG] node:%q", node)
 
 		attrs := make(discoteq.ServiceHostRecord)
-		nodeMap, _ := node.(ChefNodeMap)
+		nodeMap, ok := node.(map[string]interface{})
+		if !ok {
+			log.Printf("[DEBUG] node could not be cast to map[string]interface{}: %q", node)
+		}
+
+		log.Printf("[DEBUG] nodeMap:%q", nodeMap)
 		mergedNodeMap := mergeNodeAttrs(nodeMap)
+		log.Printf("[DEBUG] mergedNodeMap:%q", mergedNodeMap)
 		requestedAttrs := s.Attrs
 		for k, v := range requestedAttrs {
-			attrs[k] = getAttr(mergedNodeMap, v).(string)
+			log.Printf("[DEBUG] requested attr k:%q v:%q", k, v)
+			switch val := getAttr(mergedNodeMap, v).(type) {
+			default:
+                log.Printf("[WARN] Could not identify type of attr: %q", val)
+				attrs[k] = ""
+			case string:
+				attrs[k] = val
+			case float64:
+				attrs[k] = fmt.Sprintf("%v",val)
+			}
 		}
 
 		discoveredService = append(discoveredService, attrs)
@@ -119,6 +136,7 @@ func (s *Service) hostRecordListFromResults(searchResults *chefClient.SearchResu
 
 	sort.Sort(discoveredService)
 
+	log.Print("[DEBUG] discoveredService: ", discoveredService)
 	return discoveredService
 }
 
@@ -133,7 +151,8 @@ func getAttr(node ChefNodeMap, query string) interface{} {
 		result = current[seg]
 		// descent into empty map doesn't matter, it
 		// correctly returns null regardless
-		current, _ = current[seg].(ChefNodeMap)
+		next, _ := current[seg].(map[string]interface{})
+		current = next
 	}
 	return result
 }
@@ -141,13 +160,18 @@ func getAttr(node ChefNodeMap, query string) interface{} {
 // take a node with default, normal and automatic attributes
 // and return a single merged map of the highest precedence values
 func mergeNodeAttrs(node ChefNodeMap) ChefNodeMap {
+	log.Print("[DEBUG] mergeNodeAttrs()")
 	// default is a keyword, dfault will have to do
-	dfault, _ := node["default"].(ChefNodeMap)
-	normal, _ := node["normal"].(ChefNodeMap)
-	automatic, _ := node["automatic"].(ChefNodeMap)
+	dfault, _ := node["default"].(map[string]interface{})
+	log.Printf("[DEBUG] default:%q", dfault)
+	normal, _ := node["normal"].(map[string]interface{})
+	log.Printf("[DEBUG] normal:%q", normal)
+	automatic, _ := node["automatic"].(map[string]interface{})
+	log.Printf("[DEBUG] automatic:%q", automatic)
 	// merge together attributes with automatic at highest precedence,
 	// followed by normal, followed by default
 	result := mergeAttrMap(mergeAttrMap(dfault, normal), automatic)
+	log.Printf("[DEBUG] result:%q", result)
 	return result
 }
 

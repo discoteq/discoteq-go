@@ -16,10 +16,10 @@
   ],
   "myface-db-slave": [
     {
-      "hostname": "myface-db-002.example.net"
+      "hostname": "myface-db-001.example.net"
     },
     {
-      "hostname": "myface-db-001.example.net"
+      "hostname": "myface-db-002.example.net"
     }
   ],
   "myface-fascade": [
@@ -30,7 +30,7 @@
   "statsd": [
     {
       "hostname": "10.0.0.216",
-      "port": 8126
+      "port": "8126"
     }
   ]
 }
